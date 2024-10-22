@@ -1,0 +1,3 @@
+﻿<Project>
+  <Import Project="..\build\BookManagement.Server.props" />
+</Project>

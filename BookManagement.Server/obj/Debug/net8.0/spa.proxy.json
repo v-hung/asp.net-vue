@@ -1,0 +1,10 @@
+{
+"SpaProxyServer": {
+"ServerUrl": "https://localhost:5173",
+"RedirectUrl": "",
+"LaunchCommand": "npm run dev",
+"WorkingDirectory": "c:\\Users\\vieth\\OneDrive\\Desktop\\New folder\\.net\\BookManagement\\BookManagement.Server\\..\\bookmanagement.client",
+"MaxTimeoutInSeconds": "120",
+"KeepRunning": "false"
+}
+}
