@@ -1,17 +1,17 @@
 {
   "format": 1,
   "restore": {
-    "c:\\Users\\vieth\\OneDrive\\Desktop\\New folder\\.net\\BookManagement\\BookManagement.Server\\BookManagement.Server.csproj": {}
+    "C:\\Users\\vieth\\OneDrive\\Desktop\\New folder\\.net\\BookManagement\\BookManagement.Server\\BookManagement.Server.csproj": {}
   },
   "projects": {
-    "c:\\Users\\vieth\\OneDrive\\Desktop\\New folder\\.net\\BookManagement\\BookManagement.Server\\BookManagement.Server.csproj": {
+    "C:\\Users\\vieth\\OneDrive\\Desktop\\New folder\\.net\\BookManagement\\BookManagement.Server\\BookManagement.Server.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "c:\\Users\\vieth\\OneDrive\\Desktop\\New folder\\.net\\BookManagement\\BookManagement.Server\\BookManagement.Server.csproj",
+        "projectUniqueName": "C:\\Users\\vieth\\OneDrive\\Desktop\\New folder\\.net\\BookManagement\\BookManagement.Server\\BookManagement.Server.csproj",
         "projectName": "BookManagement.Server",
-        "projectPath": "c:\\Users\\vieth\\OneDrive\\Desktop\\New folder\\.net\\BookManagement\\BookManagement.Server\\BookManagement.Server.csproj",
+        "projectPath": "C:\\Users\\vieth\\OneDrive\\Desktop\\New folder\\.net\\BookManagement\\BookManagement.Server\\BookManagement.Server.csproj",
         "packagesPath": "C:\\Users\\vieth\\.nuget\\packages\\",
-        "outputPath": "c:\\Users\\vieth\\OneDrive\\Desktop\\New folder\\.net\\BookManagement\\BookManagement.Server\\obj\\",
+        "outputPath": "C:\\Users\\vieth\\OneDrive\\Desktop\\New folder\\.net\\BookManagement\\BookManagement.Server\\obj\\",
         "projectStyle": "PackageReference",
         "configFilePaths": [
           "C:\\Users\\vieth\\AppData\\Roaming\\NuGet\\NuGet.Config",
@@ -46,9 +46,31 @@
         "net8.0": {
           "targetAlias": "net8.0",
           "dependencies": {
+            "Microsoft.AspNetCore.Authentication.JwtBearer": {
+              "target": "Package",
+              "version": "[8.0.10, )"
+            },
+            "Microsoft.AspNetCore.Identity.EntityFrameworkCore": {
+              "target": "Package",
+              "version": "[8.0.10, )"
+            },
             "Microsoft.AspNetCore.SpaProxy": {
               "target": "Package",
               "version": "[8.*-*, )"
+            },
+            "Microsoft.EntityFrameworkCore.Sqlite": {
+              "target": "Package",
+              "version": "[8.0.10, )"
+            },
+            "Microsoft.EntityFrameworkCore.Tools": {
+              "include": "Runtime, Build, Native, ContentFiles, Analyzers, BuildTransitive",
+              "suppressParent": "All",
+              "target": "Package",
+              "version": "[8.0.10, )"
+            },
+            "SixLabors.ImageSharp": {
+              "target": "Package",
+              "version": "[3.1.5, )"
             },
             "Swashbuckle.AspNetCore": {
               "target": "Package",
