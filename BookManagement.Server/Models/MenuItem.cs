@@ -10,6 +10,6 @@ public class MenuItem
     public bool IsVisible { get; set; } = true;
 
     // Navigation properties
-    public ICollection<MenuItem> Children { get; set; } = [];
-    public ICollection<Permission> Permissions { get; set; } = [];
+    public IList<MenuItem> Children { get; set; } = [];
+    public IList<Permission> Permissions { get; set; } = [];
 }

@@ -9,8 +9,9 @@ public class ApplicationDbContext : IdentityDbContext<
     >
 {
     public DbSet<MenuItem> MenuItems { get; set; }
+    public DbSet<Permission> Permissions { get; set; }
 
-    public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : base(options) { }
+    public ApplicationDbContext(DbContextOptions options) : base(options) { }
 
     public override int SaveChanges()
     {

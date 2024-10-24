@@ -3,13 +3,14 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using System.Text;
+using BookManagement.Server.Core.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddControllers();
 
-// Cấu hình Swagger/OpenAPI
+// Config Swagger/OpenAPI
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
 {
@@ -23,12 +24,12 @@ builder.Services.AddSwaggerGen(c =>
     });
 });
 
-// Kết nối tới cơ sở dữ liệu
+// Connect database
 builder.Services.AddDbContext<ApplicationDbContext>(
     options => options.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection"))
 );
 
-// Cấu hình Identity
+// Config Identity
 builder.Services.AddIdentity<User, Role>(options =>
 {
     options.SignIn.RequireConfirmedAccount = true;
@@ -41,7 +42,7 @@ builder.Services.AddIdentity<User, Role>(options =>
 })
 .AddEntityFrameworkStores<ApplicationDbContext>();
 
-// Cấu hình JWT
+// Config JWT
 var key = builder.Configuration["Jwt:Key"];
 var issuer = builder.Configuration["Jwt:Issuer"];
 var audience = builder.Configuration["Jwt:Audience"];
@@ -64,6 +65,11 @@ builder.Services.AddAuthentication(options =>
         IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(key!))
     };
 });
+
+// add scoped
+builder.Services.AddScoped<UploadFile>();
+builder.Services.AddScoped<JwtTokenUtil>();
+builder.Services.AddTransient<EmailSender>();
 
 var app = builder.Build();
 

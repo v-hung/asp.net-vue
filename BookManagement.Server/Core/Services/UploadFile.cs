@@ -1,7 +1,7 @@
 using SixLabors.ImageSharp;
-using BookManagement.Server.core.Models;
+using BookManagement.Server.Core.Models;
 
-namespace BookManagement.Server.core.Services;
+namespace BookManagement.Server.Core.Services;
 
 public class UploadFile
 {

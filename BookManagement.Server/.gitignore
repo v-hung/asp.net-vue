@@ -1,0 +1,8 @@
+
+*.suo
+# *.user
+# *.csproj.user
+*.sln.docstates
+**/bin/
+**/obj/
+**/Properties/AssemblyInfo.cs

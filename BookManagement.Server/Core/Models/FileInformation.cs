@@ -1,4 +1,4 @@
-namespace BookManagement.Server.core.Models;
+namespace BookManagement.Server.Core.Models;
 public class FileInformation
 {
     public required string Name { get; set; }

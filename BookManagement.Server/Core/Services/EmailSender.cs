@@ -5,7 +5,7 @@ using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
-namespace BookManagement.Server.core.Services;
+namespace BookManagement.Server.Core.Services;
 
 public class EmailSender
 {

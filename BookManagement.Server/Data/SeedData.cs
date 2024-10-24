@@ -1,9 +1,14 @@
+using System.Threading.Tasks;
 using Microsoft.AspNetCore.Identity;
 
 public static class SeedData
 {
     public static async Task Initialize(IServiceProvider serviceProvider)
     {
+        await SeedData.seedUser(serviceProvider);
+    }
+
+    public static async Task seedUser(IServiceProvider serviceProvider) {
         var userManager = serviceProvider.GetRequiredService<UserManager<User>>();
         var roleManager = serviceProvider.GetRequiredService<RoleManager<Role>>();
 

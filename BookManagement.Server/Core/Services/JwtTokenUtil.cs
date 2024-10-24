@@ -5,7 +5,7 @@ using System.Text;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.IdentityModel.Tokens;
 
-namespace BookManagement.Server.core.Services;
+namespace BookManagement.Server.Core.Services;
 
 public class JwtTokenUtil {
   private readonly IConfiguration _configuration;

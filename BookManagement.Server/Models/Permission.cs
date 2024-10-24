@@ -8,6 +8,6 @@ public class Permission
     public string Description { get; set; } = "";
 
     // Navigation properties
-    public ICollection<RolePermission> RolePermissions { get; set; } = [];
-    public ICollection<MenuItem> MenuItems { get; set; } = [];
+    public IList<Role> Roles { get; set; } = [];
+    public IList<MenuItem> MenuItems { get; set; } = [];
 }

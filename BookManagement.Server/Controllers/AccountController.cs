@@ -14,7 +14,7 @@ using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.AspNetCore.Identity.UI.Services;
 using System.Text.Encodings.Web;
 using System.ComponentModel.DataAnnotations;
-using BookManagement.Server.Services;
+using BookManagement.Server.Core.Services;
 
 namespace BookManagement.Server.Controllers;
 
