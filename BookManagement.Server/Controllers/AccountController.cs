@@ -16,6 +16,8 @@ using System.Text.Encodings.Web;
 using System.ComponentModel.DataAnnotations;
 using BookManagement.Server.Core.Services;
 using BookManagement.Server.Core.Models;
+using AutoMapper;
+using BookManagement.Server.Core.Dto;
 
 namespace BookManagement.Server.Controllers;
 
@@ -29,8 +31,9 @@ public class AccountController : Controller
   private readonly IEmailSender _emailSender;
   private readonly IHttpContextAccessor _httpContextAccessor;
   private readonly UploadFile _uploadFile;
+  private readonly IMapper _mapper;
 
-  public AccountController(SignInManager<User> signInManager, UserManager<User> userManager, JwtTokenUtil jwtTokenUtil, IEmailSender emailSender, IHttpContextAccessor httpContextAccessor, UploadFile uploadFile)
+  public AccountController(SignInManager<User> signInManager, UserManager<User> userManager, JwtTokenUtil jwtTokenUtil, IEmailSender emailSender, IHttpContextAccessor httpContextAccessor, UploadFile uploadFile, IMapper mapper)
   {
     _signInManager = signInManager;
     _userManager = userManager;
@@ -38,6 +41,7 @@ public class AccountController : Controller
     _emailSender = emailSender;
     _httpContextAccessor = httpContextAccessor;
     _uploadFile = uploadFile;
+    _mapper = mapper;
   }
 
   [HttpPost("login")]
@@ -75,18 +79,7 @@ public class AccountController : Controller
     {
       Token = token,
       RefreshToken = refreshToken,
-      User = new UserDto
-      {
-        Id = user.Id,
-        Email = user.Email,
-        FullName = user.FullName,
-        PhoneNumber = user.PhoneNumber,
-        EmailConfirmed = user.EmailConfirmed,
-        Address = user.Address,
-        Image = user.Image,
-        CreatedAt = user.CreatedAt,
-        UpdatedAt = user.UpdatedAt
-      }
+      User = _mapper.Map<UserDto>(user)
     };
 
     return Ok(response);
@@ -137,21 +130,18 @@ public class AccountController : Controller
     var username = principal.Identity?.Name ?? "";
 
     var user = await _userManager.FindByNameAsync(username);
-    if (user == null || user.RefreshToken != tokenApiModel.RefreshToken || user.RefreshTokenExpiryTime <= DateTime.Now)
+    if (user == null || _jwtTokenUtil.IsRefreshTokenValid(user, tokenApiModel.Token))
     {
       return BadRequest("Invalid client request");
     }
 
     var newToken = _jwtTokenUtil.GenerateJwtToken(user);
-    var newRefreshToken = _jwtTokenUtil.GenerateRefreshToken();
-
-    user.RefreshToken = newRefreshToken;
-    await _userManager.UpdateAsync(user);
+    _jwtTokenUtil.RefreshTokenAsync(user, tokenApiModel.Token);
 
     return Ok(new
     {
       Token = newToken,
-      RefreshToken = newRefreshToken
+      RefreshToken = tokenApiModel.Token
     });
   }
 
@@ -167,56 +157,57 @@ public class AccountController : Controller
   [Authorize]
   public async Task<IActionResult> Update([FromForm] UpdateApiModel input) {
     var user = await _userManager.GetUserAsync(User);
+    return Unauthorized(new { message = "Tài khoản không tồn tại" });
 
-    if (user == null)
-    {
-      return Unauthorized(new { message = "Tài khoản không tồn tại" });
-    }
+    // if (user == null)
+    // {
+    //   return Unauthorized(new { message = "Tài khoản không tồn tại" });
+    // }
 
-    if (!string.IsNullOrEmpty(input.FullName)) {
-      user.FullName = input.FullName;
-    }
+    // if (!string.IsNullOrEmpty(input.FullName)) {
+    //   user.FullName = input.FullName;
+    // }
 
-    if (!string.IsNullOrEmpty(input.Address)) {
-      user.Address = input.Address;
-    }
+    // if (!string.IsNullOrEmpty(input.Address)) {
+    //   user.Address = input.Address;
+    // }
 
-    if (!string.IsNullOrEmpty(input.Phone)) {
-      user.PhoneNumber = input.Phone;
-    }
+    // if (!string.IsNullOrEmpty(input.Phone)) {
+    //   user.PhoneNumber = input.Phone;
+    // }
     
-    if (input.File != null) {
-      FileInformation fileInfo = await _uploadFile.UploadSingle(input.File, "User");
-      user.Image = fileInfo.Path;
-    }
+    // if (input.File != null) {
+    //   FileInformation fileInfo = await _uploadFile.UploadSingle(input.File, "User");
+    //   user.Image = fileInfo.Path;
+    // }
 
-    var result = await _userManager.UpdateAsync(user);
+    // var result = await _userManager.UpdateAsync(user);
 
-    if (!result.Succeeded) {
-      return BadRequest(new { message = "Không thể cập nhập thông tin tài khoản" });
-    }
+    // if (!result.Succeeded) {
+    //   return BadRequest(new { message = "Không thể cập nhập thông tin tài khoản" });
+    // }
 
-    if (!string.IsNullOrEmpty(input.CurrentPassword) && !string.IsNullOrEmpty(input.NewPassword)) {
-      var changePasswordResult = await _userManager.ChangePasswordAsync(user, input.CurrentPassword, input.NewPassword);
+    // if (!string.IsNullOrEmpty(input.CurrentPassword) && !string.IsNullOrEmpty(input.NewPassword)) {
+    //   var changePasswordResult = await _userManager.ChangePasswordAsync(user, input.CurrentPassword, input.NewPassword);
 
-      if (!changePasswordResult.Succeeded) {
-        return BadRequest(new { message = "Không thể cập nhập mật khẩu tin tài khoản" });
-      }
+    //   if (!changePasswordResult.Succeeded) {
+    //     return BadRequest(new { message = "Không thể cập nhập mật khẩu tin tài khoản" });
+    //   }
 
-      await _signInManager.RefreshSignInAsync(user);
-    }
+    //   await _signInManager.RefreshSignInAsync(user);
+    // }
 
-    return Ok(new UserDto() {
-      Id = user.Id,
-      Address = user.Address,
-      CreatedAt = user.CreatedAt,
-      Email = user.Email,
-      EmailConfirmed = user.EmailConfirmed,
-      FullName = user.FullName,
-      Image = user.Image,
-      PhoneNumber = user.PhoneNumber,
-      UpdatedAt = user.UpdatedAt
-    });
+    // return Ok(new UserDto() {
+    //   Id = user.Id,
+    //   Address = user.Address,
+    //   CreatedAt = user.CreatedAt,
+    //   Email = user.Email,
+    //   EmailConfirmed = user.EmailConfirmed,
+    //   FullName = user.FullName,
+    //   Image = user.Image,
+    //   PhoneNumber = user.PhoneNumber,
+    //   UpdatedAt = user.UpdatedAt
+    // });
   }
 
   [HttpGet("current-user")]
@@ -227,18 +218,7 @@ public class AccountController : Controller
 
     return Ok(new
     {
-      User = user != null ? new UserDto
-      {
-        Id = user.Id,
-        Email = user.Email,
-        FullName = user.FullName,
-        PhoneNumber = user.PhoneNumber,
-        EmailConfirmed = user.EmailConfirmed,
-        Address = user.Address,
-        Image = user.Image,
-        CreatedAt = user.CreatedAt,
-        UpdatedAt = user.UpdatedAt
-      } : null
+      User = user != null ? _mapper.Map<UserDto>(user) : null
     });
   }
 
@@ -257,7 +237,7 @@ public class AccountController : Controller
     code = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(code));
 
     var request = _httpContextAccessor.HttpContext?.Request;
-    var host = request?.Host.Value; // Lấy domain hoặc localhost hiện tại
+    var host = request?.Host.Value;
     var scheme = request?.Scheme;
 
     var callbackUrl = $"{scheme}://{host}/account/ConfirmEmail?userId={userId}&code={code}";

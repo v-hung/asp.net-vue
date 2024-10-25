@@ -56,7 +56,6 @@ public class JwtTokenUtil
         {
             Token = Convert.ToBase64String(Guid.NewGuid().ToByteArray()),
             Expires = DateTime.UtcNow.AddDays(Convert.ToDouble(_configuration.GetSection("Jwt:RefreshTokenExpirationInDays").Value)),
-
             Created = DateTime.UtcNow
         };
     }
@@ -65,10 +64,10 @@ public class JwtTokenUtil
     {
         var claims = new[]
         {
-      new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()), // Sử dụng "sub" cho Id của người dùng
-      new Claim(ClaimTypes.Name, user.UserName ?? ""), // Sử dụng "unique_name" cho UserName
-      new Claim(ClaimTypes.Email, user.Email ?? "")
-    };
+            new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()), // Sử dụng "sub" cho Id của người dùng
+            new Claim(ClaimTypes.Name, user.UserName ?? ""), // Sử dụng "unique_name" cho UserName
+            new Claim(ClaimTypes.Email, user.Email ?? "")
+        };
 
         var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration.GetSection("Jwt:Key").Value!));
         var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
@@ -77,7 +76,7 @@ public class JwtTokenUtil
           issuer: _configuration["Jwt:Issuer"],
           audience: _configuration["Jwt:Audience"],
           claims: claims,
-          expires: DateTime.Now.AddMinutes(30),
+          expires: DateTime.Now.AddMinutes(Convert.ToDouble(_configuration.GetSection("Jwt:TokenExpirationInMinutes").Value)),
           signingCredentials: creds
         );
 
@@ -92,5 +91,34 @@ public class JwtTokenUtil
             _context.RefreshTokens.Remove(token);
             _context.SaveChanges();
         }
+    }
+
+    public bool IsRefreshTokenValid(User user, string refreshToken)
+    {
+        var token = user.RefreshTokens.FirstOrDefault(rt => rt.Token == refreshToken);
+
+        if (token != null && token.IsExpired)
+        {
+            return true;
+        }
+
+        return false;
+    }
+
+    public void RefreshTokenAsync(User user, string oldRefreshToken)
+    {
+        var token = user.RefreshTokens.FirstOrDefault(rt => rt.Token == oldRefreshToken && rt.IsExpired);
+
+        if (token == null)
+        {
+            throw new SecurityTokenException("Invalid or expired refresh token.");
+        }
+
+        token.Expires = DateTime.UtcNow.AddDays(Convert.ToDouble(_configuration.GetSection("Jwt:RefreshTokenExpirationInDays").Value));
+        _context.RefreshTokens.Update(token);
+
+        _context.RefreshTokens.Update(token);
+
+        _context.SaveChanges();
     }
 }

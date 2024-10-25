@@ -1,3 +1,4 @@
+// Suggested code may be subject to a license. Learn more: ~LicenseLog:129631704.
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
@@ -34,7 +35,7 @@ builder.Services.AddDbContext<ApplicationDbContext>(
 // Config Identity
 builder.Services.AddIdentity<User, Role>(options =>
 {
-    options.SignIn.RequireConfirmedAccount = true;
+    options.SignIn.RequireConfirmedAccount = false;
     options.Password.RequireDigit = false;
     options.Password.RequiredLength = 6;
     options.Password.RequireNonAlphanumeric = false;
@@ -72,6 +73,9 @@ builder.Services.AddAuthentication(options =>
 builder.Services.AddScoped<UploadFile>();
 builder.Services.AddScoped<JwtTokenUtil>();
 builder.Services.AddTransient<EmailSender>();
+
+// Add AutoMapper
+builder.Services.AddAutoMapper(typeof(MappingProfile));
 
 var app = builder.Build();
 
@@ -111,3 +115,17 @@ app.MapControllers();
 app.MapFallbackToFile("/index.html");
 
 app.Run();
+
+
+// services.AddDbContext<ApplicationDbContext>(options =>
+//         options.UseSqlServer(Configuration.GetConnectionString("DefaultConnection")));
+
+//     // Đăng ký Authorization Handlers
+//     services.AddSingleton<IAuthorizationHandler, PermissionHandler>();
+
+//     // Thêm dịch vụ Authorization
+//     services.AddAuthorization(options =>
+//     {
+//         // Tạo policy với PermissionRequirement
+//         options.AddPolicy("RequirePermission", policy => policy.Requirements.Add(new PermissionRequirement("YourPermissionName")));
+//     });
