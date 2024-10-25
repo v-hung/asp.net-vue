@@ -1,11 +1,11 @@
 using SixLabors.ImageSharp;
 using BookManagement.Server.Core.Models;
+using Microsoft.IdentityModel.Tokens;
 
 namespace BookManagement.Server.Core.Services;
-
 public class UploadFile
 {
-    private static string UPLOAD_FOLDER_NAME = "uploads";
+    private static readonly string UPLOAD_FOLDER_NAME = "uploads";
     private static readonly string[] ImageExtensions = ["jpg", "jpeg", "png", "gif", "bmp", "svg", "webp"];
     private static readonly string[] AudioExtensions = ["mp3", "wav", "ogg", "flac", "aac", "wma"];
     private static readonly string[] VideoExtensions = ["mp4", "avi", "mov", "wmv", "mkv", "flv"];
@@ -30,11 +30,11 @@ public class UploadFile
 
             foreach (string filePath in fileList)
             {
-                FileInfo fileInfo = new FileInfo(filePath);
+                var fileInfo = new FileInfo(filePath);
 
                 string Name = Path.GetFileName(filePath);
 
-                FileInformation fileInformation = new FileInformation()
+                var fileInformation = new FileInformation()
                 {
                     Name = Name,
                     Path = $"/{uploadsFolderPath}/{Name}",
@@ -44,11 +44,9 @@ public class UploadFile
 
                 if (ImageExtensions.Contains(fileInformation.Extension))
                 {
-                    using (var image = Image.Load(filePath))
-                    {
-                        fileInformation.ImageWidth = image.Width;
-                        fileInformation.ImageHeight = image.Height;
-                    }
+                    using var image = Image.Load(filePath);
+                    fileInformation.ImageWidth = image.Width;
+                    fileInformation.ImageHeight = image.Height;
                 }
 
                 filesInfo.Add(fileInformation);
@@ -85,9 +83,9 @@ public class UploadFile
             await file.CopyToAsync(stream);
         }
 
-        FileInfo fileInfo = new FileInfo(filePath);
+        var fileInfo = new FileInfo(filePath);
 
-        FileInformation fileInformation = new FileInformation()
+        var fileInformation = new FileInformation()
         {
             Name = fileName,
             Path = $"/{uploadsFolderPath}/{fileName}",
@@ -97,11 +95,9 @@ public class UploadFile
 
         if (ImageExtensions.Contains(fileInformation.Extension))
         {
-            using (var image = Image.Load(filePath))
-            {
-                fileInformation.ImageWidth = image.Width;
-                fileInformation.ImageHeight = image.Height;
-            }
+            using var image = Image.Load(filePath);
+            fileInformation.ImageWidth = image.Width;
+            fileInformation.ImageHeight = image.Height;
         }
 
         return fileInformation;
@@ -109,13 +105,7 @@ public class UploadFile
 
     public async Task<List<FileInformation>> UploadMultiple(List<IFormFile> files, string? path = null)
     {
-        var uploadTasks = new List<Task<FileInformation>>();
-
-        foreach (var file in files)
-        {
-            // Thêm mỗi task vào danh sách
-            uploadTasks.Add(UploadSingle(file, path));
-        }
+        var uploadTasks = files.Select(file => UploadSingle(file, path)).ToList();
 
         FileInformation[] results = await Task.WhenAll(uploadTasks);
 
@@ -129,7 +119,6 @@ public class UploadFile
             path = path.Remove(0, "/uploads/".Length);
         }
 
-        // để bắt buộc chỉ xóa trong thư mục uploads
         string filePath = Path.Combine(_webHostEnvironment.WebRootPath, $"{UPLOAD_FOLDER_NAME}/{path}");
 
         if (File.Exists(filePath))
@@ -142,7 +131,7 @@ public class UploadFile
         }
     }
 
-    private bool IsMediaExtension(string extension)
+    private static bool IsMediaExtension(string extension)
     {
         return ImageExtensions.Contains(extension) ||
             AudioExtensions.Contains(extension) ||

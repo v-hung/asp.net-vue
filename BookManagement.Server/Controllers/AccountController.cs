@@ -15,10 +15,10 @@ using Microsoft.AspNetCore.Identity.UI.Services;
 using System.Text.Encodings.Web;
 using System.ComponentModel.DataAnnotations;
 using BookManagement.Server.Core.Services;
+using BookManagement.Server.Core.Models;
 
 namespace BookManagement.Server.Controllers;
 
-[Area("Api")]
 [ApiController]
 [Route("/api/[controller]")]
 public class AccountController : Controller
@@ -63,10 +63,8 @@ public class AccountController : Controller
     // Tạo JWT token
     var token = _jwtTokenUtil.GenerateJwtToken(user);
 
-    var refreshToken = _jwtTokenUtil.GenerateRefreshToken();
-    user.RefreshToken = refreshToken;
-    user.RefreshTokenExpiryTime = DateTime.Now.AddDays(7);
-
+    var refreshToken = _jwtTokenUtil.GenerateRefreshTokenModel();
+    user.RefreshTokens.Add(refreshToken);
     await _userManager.UpdateAsync(user);
 
     // Sử dụng SignInManager để tạo cookie xác thực cho admin

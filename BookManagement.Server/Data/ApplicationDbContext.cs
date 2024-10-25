@@ -2,6 +2,10 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 
+using BookManagement.Server.Core.Models;
+
+namespace BookManagement.Server.Data;
+
 public class ApplicationDbContext : IdentityDbContext<
         User, Role, Guid, IdentityUserClaim<Guid>, UserRole,
         IdentityUserLogin<Guid>,
@@ -10,6 +14,7 @@ public class ApplicationDbContext : IdentityDbContext<
 {
     public DbSet<MenuItem> MenuItems { get; set; }
     public DbSet<Permission> Permissions { get; set; }
+    public DbSet<RefreshToken> RefreshTokens { get; set; }
 
     public ApplicationDbContext(DbContextOptions options) : base(options) { }
 

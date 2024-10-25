@@ -4,6 +4,8 @@ using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using System.Text;
 using BookManagement.Server.Core.Services;
+using BookManagement.Server.Data;
+using BookManagement.Server.Core.Models;
 
 var builder = WebApplication.CreateBuilder(args);
 

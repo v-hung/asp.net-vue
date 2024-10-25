@@ -1,12 +1,7 @@
 using System.Net;
 using System.Net.Mail;
-using Microsoft.AspNetCore.Identity;
-using Microsoft.AspNetCore.Identity.UI.Services;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 
 namespace BookManagement.Server.Core.Services;
-
 public class EmailSender
 {
     private readonly IConfiguration _configuration;

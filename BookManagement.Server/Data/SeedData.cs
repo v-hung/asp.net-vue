@@ -1,14 +1,16 @@
 using System.Threading.Tasks;
+using BookManagement.Server.Core.Models;
 using Microsoft.AspNetCore.Identity;
 
+namespace BookManagement.Server.Data;
 public static class SeedData
 {
     public static async Task Initialize(IServiceProvider serviceProvider)
     {
-        await SeedData.seedUser(serviceProvider);
+        await SeedUser(serviceProvider);
     }
 
-    public static async Task seedUser(IServiceProvider serviceProvider) {
+    public static async Task SeedUser(IServiceProvider serviceProvider) {
         var userManager = serviceProvider.GetRequiredService<UserManager<User>>();
         var roleManager = serviceProvider.GetRequiredService<RoleManager<Role>>();
 

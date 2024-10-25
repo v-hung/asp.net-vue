@@ -1,6 +1,4 @@
-using System;
-using System.Collections.Generic;
-
+namespace BookManagement.Server.Core.Models;
 public class MenuItem
 {
     public Guid Id { get; set; } = Guid.NewGuid();

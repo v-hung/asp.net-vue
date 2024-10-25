@@ -1,7 +1,6 @@
-using System;
-using System.Collections.Generic;
 using Microsoft.AspNetCore.Identity;
 
+namespace BookManagement.Server.Core.Models;
 public class User : IdentityUser<Guid>
 {
     public required string FullName { get; set; }
@@ -9,5 +8,6 @@ public class User : IdentityUser<Guid>
     public DateTime? UpdatedAt { get; set; }
 
     // Navigation properties
-    public ICollection<UserRole> UserRoles { get; set; } = [];
+    public IList<UserRole> UserRoles { get; set; } = [];
+    public IList<RefreshToken> RefreshTokens { get; set; } = [];
 }

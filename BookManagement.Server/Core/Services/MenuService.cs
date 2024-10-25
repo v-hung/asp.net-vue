@@ -1,14 +1,17 @@
+using BookManagement.Server.Core.Models;
+using BookManagement.Server.Data;
 using Microsoft.AspNetCore.Identity;
 
+namespace BookManagement.Server.Core.Services;
 public class MenuService
 {
-    private readonly MenuRepository _menuRepository;
+    private readonly ApplicationDbContext _context;
     private readonly UserManager<User> _userManager;
     private readonly IHttpContextAccessor _httpContextAccessor;
 
-    public MenuService(MenuRepository menuRepository, UserManager<User> userManager, IHttpContextAccessor httpContextAccessor)
+    public MenuService(ApplicationDbContext context, UserManager<User> userManager, IHttpContextAccessor httpContextAccessor)
     {
-        _menuRepository = menuRepository;
+        _context = context;
         _userManager = userManager;
         _httpContextAccessor = httpContextAccessor;
     }
