@@ -1,4 +1,3 @@
-// Suggested code may be subject to a license. Learn more: ~LicenseLog:129631704.
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
@@ -7,8 +6,21 @@ using System.Text;
 using BookManagement.Server.Core.Services;
 using BookManagement.Server.Data;
 using BookManagement.Server.Core.Models;
+using Microsoft.AspNetCore.Authorization;
+using BookManagement.Server.Core.Authorization;
 
 var builder = WebApplication.CreateBuilder(args);
+
+builder.Services.AddCors(options =>
+    {
+        options.AddPolicy("AllowAll",
+            builder =>
+            {
+                builder.AllowAnyOrigin()
+                       .AllowAnyMethod()
+                       .AllowAnyHeader();
+            });
+    });
 
 // Add services to the container.
 builder.Services.AddControllers();
@@ -19,13 +31,32 @@ builder.Services.AddSwaggerGen(c =>
 {
     c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
     {
-        Description = "JWT Authorization header using the Bearer scheme.",
         Name = "Authorization",
+        Description = "Enter the Bearer Authorization string as following: `Bearer Generated-JWT-Token`",
         In = ParameterLocation.Header,
         Type = SecuritySchemeType.ApiKey,
         Scheme = "Bearer"
     });
+
+    // Yêu cầu bảo mật cho toàn bộ API
+    c.AddSecurityRequirement(new OpenApiSecurityRequirement
+    {
+        {
+            new OpenApiSecurityScheme
+            {
+                Name = "Bearer",
+                In = ParameterLocation.Header,
+                Reference = new OpenApiReference
+                {
+                    Id = "Bearer",
+                    Type = ReferenceType.SecurityScheme,
+                }
+            },
+            new List<string>()
+        }
+    });
 });
+
 
 // Connect database
 builder.Services.AddDbContext<ApplicationDbContext>(
@@ -45,6 +76,19 @@ builder.Services.AddIdentity<User, Role>(options =>
 })
 .AddEntityFrameworkStores<ApplicationDbContext>();
 
+// Add scoped services
+builder.Services.AddScoped<UploadFile>();
+builder.Services.AddScoped<JwtTokenUtil>();
+builder.Services.AddTransient<EmailSender>();
+builder.Services.AddScoped<MenuService>();
+
+// Add AutoMapper
+builder.Services.AddAutoMapper(typeof(MappingProfile));
+
+// Register services with the Scoped lifecycle
+builder.Services.AddSingleton<IAuthorizationPolicyProvider, PermissionPolicyProvider>();
+builder.Services.AddScoped<IAuthorizationHandler, PermissionHandler>();
+
 // Config JWT
 var key = builder.Configuration["Jwt:Key"];
 var issuer = builder.Configuration["Jwt:Issuer"];
@@ -57,7 +101,7 @@ builder.Services.AddAuthentication(options =>
 })
 .AddJwtBearer(options =>
 {
-    options.TokenValidationParameters = new Microsoft.IdentityModel.Tokens.TokenValidationParameters
+    options.TokenValidationParameters = new TokenValidationParameters
     {
         ValidateIssuer = true,
         ValidateAudience = true,
@@ -68,14 +112,6 @@ builder.Services.AddAuthentication(options =>
         IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(key!))
     };
 });
-
-// add scoped
-builder.Services.AddScoped<UploadFile>();
-builder.Services.AddScoped<JwtTokenUtil>();
-builder.Services.AddTransient<EmailSender>();
-
-// Add AutoMapper
-builder.Services.AddAutoMapper(typeof(MappingProfile));
 
 var app = builder.Build();
 
@@ -104,6 +140,8 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
+app.UseCors("AllowAll");
+
 app.UseHttpsRedirection();
 
 // Thêm Middleware cho Authentication
@@ -115,17 +153,3 @@ app.MapControllers();
 app.MapFallbackToFile("/index.html");
 
 app.Run();
-
-
-// services.AddDbContext<ApplicationDbContext>(options =>
-//         options.UseSqlServer(Configuration.GetConnectionString("DefaultConnection")));
-
-//     // Đăng ký Authorization Handlers
-//     services.AddSingleton<IAuthorizationHandler, PermissionHandler>();
-
-//     // Thêm dịch vụ Authorization
-//     services.AddAuthorization(options =>
-//     {
-//         // Tạo policy với PermissionRequirement
-//         options.AddPolicy("RequirePermission", policy => policy.Requirements.Add(new PermissionRequirement("YourPermissionName")));
-//     });

@@ -6,6 +6,8 @@ public class MenuItem
     public required string Url { get; set; }
     public Guid? ParentId { get; set; }
     public bool IsVisible { get; set; } = true;
+    public int Order { get; set; }
+    public virtual IList<String> PermissionTypes { get; set; } = [];
 
     // Navigation properties
     public IList<MenuItem> Children { get; set; } = [];

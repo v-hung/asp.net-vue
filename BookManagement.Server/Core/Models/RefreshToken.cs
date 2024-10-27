@@ -1,10 +1,14 @@
-// Suggested code may be subject to a license. Learn more: ~LicenseLog:2077256233.
+using System.ComponentModel.DataAnnotations;
+
 namespace BookManagement.Server.Core.Models;
 
 public class RefreshToken
 {
+    [Key]
     public required string Token { get; set; }
     public required DateTime Expires { get; set; }
-    public bool IsExpired => DateTime.Now >= Expires;
     public DateTime Created { get; set; }
+
+    public Guid UserId { get; set; }
+    public User? User { get; set; }
 }

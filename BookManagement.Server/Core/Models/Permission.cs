@@ -2,7 +2,12 @@ namespace BookManagement.Server.Core.Models;
 public class Permission
 {
     public Guid Id { get; set; } = Guid.NewGuid();
-    public required string Name { get; set; }
-    public string Description { get; set; } = "";
-    public required string Resource { get; set; }
+
+    public Guid RoleId { get; set; }
+    public Role? Role { get; set; }
+
+    public Guid MenuItemId { get; set; } 
+    public MenuItem? MenuItem { get; set; }
+
+    public PermissionType PermissionType { get; set; }
 }

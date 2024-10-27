@@ -8,6 +8,6 @@ public class User : IdentityUser<Guid>
     public DateTime? UpdatedAt { get; set; }
 
     // Navigation properties
-    public IList<UserRole> UserRoles { get; set; } = [];
+    public IList<Role> Roles { get; set; } = [];
     public IList<RefreshToken> RefreshTokens { get; set; } = [];
 }

@@ -85,7 +85,7 @@ public class JwtTokenUtil
 
     public void RevokeRefreshToken(User user, string refreshToken)
     {
-        var token = user.RefreshTokens.FirstOrDefault(rt => rt.Token == refreshToken);
+        var token = _context.RefreshTokens.FirstOrDefault(rt => rt.Token == refreshToken && rt.UserId == user.Id);
         if (token != null)
         {
             _context.RefreshTokens.Remove(token);
@@ -93,11 +93,25 @@ public class JwtTokenUtil
         }
     }
 
+    public void RevokeExpiredRefreshTokens(User user)
+    {
+        var expiredTokens = _context.RefreshTokens
+            .Where(rt => rt.UserId == user.Id && rt.Expires < DateTime.UtcNow)
+            .ToList();
+
+        if (expiredTokens.Any())
+        {
+            _context.RefreshTokens.RemoveRange(expiredTokens);
+            _context.SaveChanges();
+        }
+    }
+
+
     public bool IsRefreshTokenValid(User user, string refreshToken)
     {
-        var token = user.RefreshTokens.FirstOrDefault(rt => rt.Token == refreshToken);
+        var token = _context.RefreshTokens.FirstOrDefault(rt => rt.Token == refreshToken && rt.UserId == user.Id);
 
-        if (token != null && token.IsExpired)
+        if (token != null && DateTime.Now <= token.Expires)
         {
             return true;
         }
@@ -107,7 +121,7 @@ public class JwtTokenUtil
 
     public void RefreshTokenAsync(User user, string oldRefreshToken)
     {
-        var token = user.RefreshTokens.FirstOrDefault(rt => rt.Token == oldRefreshToken && rt.IsExpired);
+        var token = _context.RefreshTokens.FirstOrDefault(rt => rt.Token == oldRefreshToken && DateTime.Now <= rt.Expires && rt.UserId == user.Id);
 
         if (token == null)
         {

@@ -1,6 +1,11 @@
-// PermissionHandler.cs
+using System.Security.Claims;
+using BookManagement.Server.Core.Models;
+using BookManagement.Server.Data;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+
+namespace BookManagement.Server.Core.Authorization;
 
 public class PermissionHandler : AuthorizationHandler<PermissionRequirement>
 {
@@ -11,35 +16,37 @@ public class PermissionHandler : AuthorizationHandler<PermissionRequirement>
         _context = context;
     }
 
-    protected override async Task HandleRequirementAsync(AuthorizationHandlerContext context, PermissionRequirement requirement)
+    protected override async Task HandleRequirementAsync(AuthorizationHandlerContext authContext, PermissionRequirement requirement)
     {
-        // Lấy userId từ claims
-        var userIdClaim = context.User.FindFirst(ClaimTypes.NameIdentifier);
-        if (userIdClaim == null)
+        // get userId on claims
+        var userIdClaim = authContext.User.FindFirst(ClaimTypes.NameIdentifier);
+        if (userIdClaim == null) return;
+
+        var userId = Guid.Parse(userIdClaim.Value);
+
+        // Get the list of user roles
+        var roles = await _context.Roles
+            .Where(r => r.Users.Any(u => u.Id == userId))
+            .Select(r => new { r.Id, r.IsAdmin })
+            .ToListAsync();
+
+        // Check if the user has the admin role
+        if (roles.Any(r => r.IsAdmin))
         {
+            authContext.Succeed(requirement);
             return;
         }
 
-        var userId = userIdClaim.Value;
-
-        // Lấy user từ cơ sở dữ liệu
-        var user = await _context.Users
-            .Include(u => u.Role) // Giả sử User có Role
-            .ThenInclude(r => r.RolePermissions) // Giả sử Role có RolePermissions
-            .ThenInclude(rp => rp.Permission) // Và RolePermissions liên kết tới Permission
-            .FirstOrDefaultAsync(u => u.Id == userId);
-
-        if (user == null)
-        {
-            return;
-        }
-
-        // Kiểm tra xem user có quyền không
-        var hasPermission = user.Role.RolePermissions.Any(rp => rp.Permission.Name == requirement.Permission);
+        // Check permission
+        var hasPermission = await _context.Permissions
+            .AnyAsync(p => roles.Select(r => r.Id).Contains(p.RoleId)
+                           && p.MenuItem != null && p.MenuItem.Name == requirement.Menu
+                           && p.PermissionType == requirement.PermissionType);
 
         if (hasPermission)
         {
-            context.Succeed(requirement); // Nếu có quyền, đánh dấu yêu cầu là thành công
+            authContext.Succeed(requirement);
         }
     }
+
 }

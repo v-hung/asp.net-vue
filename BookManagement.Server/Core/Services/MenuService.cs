@@ -1,8 +1,10 @@
 using BookManagement.Server.Core.Models;
 using BookManagement.Server.Data;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 
 namespace BookManagement.Server.Core.Services;
+
 public class MenuService
 {
     private readonly ApplicationDbContext _context;
@@ -16,56 +18,61 @@ public class MenuService
         _httpContextAccessor = httpContextAccessor;
     }
 
-    // public async Task<List<MenuItem>> GetMenuForCurrentUser()
-    // {
-    //     // Lấy người dùng hiện tại
-    //     var user = await _userManager.GetUserAsync(_httpContextAccessor.HttpContext.User);
-    //     if (user == null)
-    //     {
-    //         return new List<MenuItem>(); // Nếu không đăng nhập, không trả về menu nào
-    //     }
+    public async Task<List<MenuItem>> GetMenuForCurrentUser(bool? tree = true)
+    {
+        if (_httpContextAccessor.HttpContext == null)
+        {
+            return new List<MenuItem>();
+        }
 
-    //     // Lấy tất cả các quyền của người dùng hiện tại
-    //     var userPermissions = await GetUserPermissionsAsync(user);
+        var user = await _userManager.GetUserAsync(_httpContextAccessor.HttpContext.User);
+        if (user == null)
+        {
+            return new List<MenuItem>();
+        }
 
-    //     // Lấy tất cả các menu từ cơ sở dữ liệu
-    //     var allMenuItems = _menuRepository.GetAllMenuItems();
+        // Get the list of user roles
+        var roles = _context.Roles
+            .Where(r => r.Users.Any(u => u.Id == user.Id))
+            .Select(r => new { r.Id, r.IsAdmin, Permissions = r.Permissions.Select(p => new { p.PermissionType, p.MenuItemId }).ToList() })
+            .ToList();
 
-    //     // Chỉ trả về các menu mà người dùng có quyền truy cập
-    //     var rootMenuItems = allMenuItems
-    //         .Where(m => m.ParentId == null && m.Permissions.Any(p => userPermissions.Contains(p.Name)))
-    //         .ToList();
+        List<MenuItem> menus = await _context.MenuItems
+            .Where(m => m.IsVisible)
+            .OrderBy(m => m.Order).ToListAsync();
 
-    //     // Ánh xạ các menu con vào menu cha dựa trên quyền
-    //     foreach (var parentMenu in rootMenuItems)
-    //     {
-    //         parentMenu.Children = GetChildrenForUser(parentMenu, allMenuItems, userPermissions);
-    //     }
 
-    //     return rootMenuItems;
-    // }
+        if (roles.Any(r => r.IsAdmin)) {
+            PermissionType[] allPermissions = (PermissionType[])Enum.GetValues(typeof(PermissionType));
 
-    // private List<MenuItem> GetChildrenForUser(MenuItem parentMenuItem, List<MenuItem> allMenuItems, IList<string> userPermissions)
-    // {
-    //     var children = allMenuItems
-    //         .Where(m => m.ParentId == parentMenuItem.Id && m.Permissions.Any(p => userPermissions.Contains(p.Name)))
-    //         .ToList();
+            // add permisstions to menu
+            menus.ForEach(m => m.PermissionTypes = allPermissions.Select(pt => pt.ToString()).ToList());
+        }
+        else {
+            var permissions = roles.SelectMany(r => r.Permissions);
 
-    //     foreach (var child in children)
-    //     {
-    //         child.Children = GetChildrenForUser(child, allMenuItems, userPermissions);
-    //     }
+            menus = menus
+                .Where(m => permissions.Any(p => p.MenuItemId == m.Id))
+                .ToList();
 
-    //     return children;
-    // }
+            // add permisstions to menu
+            menus.ForEach(m => m.PermissionTypes = permissions.Where(p => p.MenuItemId == m.Id).Select(p => p.PermissionType.ToString()).ToList());
+        }
 
-    // private async Task<List<string>> GetUserPermissionsAsync(User user)
-    // {
-    //     // Giả sử bạn có một phương thức để lấy quyền của người dùng từ cơ sở dữ liệu
-    //     // Ví dụ, bạn có thể kiểm tra quyền của người dùng thông qua bảng User-Permission
+        return tree == true ? BuildMenuTree(menus, null) : menus;
 
-    //     // Code ví dụ:
-    //     var permissions = await _menuRepository.GetPermissionsForUserAsync(user.Id);
-    //     return permissions.Select(p => p.Name).ToList();
-    // }
+    }
+
+    private List<MenuItem> BuildMenuTree(List<MenuItem> menus, Guid? parentId)
+    {
+        return menus
+            .Where(m => m.ParentId == parentId)
+            .Select(m =>
+            {
+                m.Children = BuildMenuTree(menus, m.Id);
+                return m;
+            })
+            .ToList();
+    }
+
 }

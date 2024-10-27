@@ -6,11 +6,7 @@ using BookManagement.Server.Core.Models;
 
 namespace BookManagement.Server.Data;
 
-public class ApplicationDbContext : IdentityDbContext<
-        User, Role, Guid, IdentityUserClaim<Guid>, UserRole,
-        IdentityUserLogin<Guid>,
-        IdentityRoleClaim<Guid>, IdentityUserToken<Guid>
-    >
+public class ApplicationDbContext : IdentityDbContext<User, Role, Guid>
 {
     public DbSet<MenuItem> MenuItems { get; set; }
     public DbSet<Permission> Permissions { get; set; }
@@ -46,18 +42,9 @@ public class ApplicationDbContext : IdentityDbContext<
 
         builder.Entity<User>(b =>
         {
-            b.HasMany(e => e.UserRoles)
-                .WithOne(e => e.User)
-                .HasForeignKey(ur => ur.UserId)
-                .IsRequired();
-        });
-
-        builder.Entity<Role>(b =>
-        {
-            b.HasMany(e => e.UserRoles)
-                .WithOne(e => e.Role)
-                .HasForeignKey(ur => ur.RoleId)
-                .IsRequired();
+            b.HasMany(e => e.Roles)
+            .WithMany(e => e.Users)
+            .UsingEntity<IdentityUserRole<Guid>>();
         });
 
     }
