@@ -9,6 +9,7 @@
     "preview": "vite preview",
     "build-only": "vite build",
     "type-check": "vue-tsc --build --force",
+    "generate-api": "npx @openapitools/openapi-generator-cli generate -i https://5046-idx-aspnet-vue-1729653606583.cluster-a3grjzek65cxex762e4mwrzl46.cloudworkstations.dev/swagger/v1/swagger.json -g typescript-axios ./src/generate-api",
     "lint": "eslint . --fix"
   },
   "dependencies": {
@@ -22,6 +23,7 @@
     "vue-router": "^4.4.5"
   },
   "devDependencies": {
+    "@openapitools/openapi-generator-cli": "^2.15.0",
     "@tsconfig/node20": "^20.1.4",
     "@types/node": "^20.16.11",
     "@vitejs/plugin-vue": "^5.1.4",

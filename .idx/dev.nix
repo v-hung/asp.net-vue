@@ -7,6 +7,7 @@
   packages = [
     pkgs.nodejs_20
     pkgs.dotnet-sdk_8
+    pkgs.sqlite
   ];
   # Sets environment variables in the workspace
   env = {};
