@@ -1,31 +1,20 @@
 import { ref } from 'vue'
 import { defineStore } from 'pinia'
 import { useRouter } from 'vue-router';
-import apiClient from '@/config/axios';
 import { useMenuStore } from './menuStore';
-
-export interface User {
-  id: string
-  email: string
-  fullName: string
-  phoneNumber?: string
-  emailConfirmed: boolean
-  address?: string
-  image?: string
-  createdAt: string
-  updatedAt: string
-}
+import { accountApi } from '@/config/api';
+import type { LoginResponse } from '@/generate-api';
 
 export const useUserStore = defineStore('user', () => {
   const router = useRouter();
   const menuStore = useMenuStore();
-  const user = ref<User | null>(null)
+  const user = ref<LoginResponse['user'] | null>(null)
 
   async function getCurrentUser() {
     try {
-      const response = await apiClient.get('/api/Account/current-user');
+      const response = await accountApi.apiAccountCurrentUserGet();
 
-      user.value = response.data.user;
+      user.value = response.data;
 
       await menuStore.getAllMenus();
 
@@ -35,7 +24,7 @@ export const useUserStore = defineStore('user', () => {
   }
 
   async function login(email: string, password: string) {
-    const response = await apiClient.post('/api/Account/login', {
+    const response = await accountApi.apiAccountLoginPost({
       email,
       password
     });
@@ -49,7 +38,7 @@ export const useUserStore = defineStore('user', () => {
   }
 
   const logout = async () => {
-    await apiClient.post('/api/Account/logout', {
+    await accountApi.apiAccountLogoutPost({
       refreshToken: localStorage.getItem('refreshToken')
     });
 

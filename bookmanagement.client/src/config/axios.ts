@@ -1,39 +1,43 @@
-import axios from 'axios';
+import axios from "axios";
+import { accountApi } from "./api";
 
-const apiClient = axios.create({
-  baseURL: 'http://localhost:5046',
+const axiosClient = axios.create({
   headers: {
     'Content-Type': 'application/json',
   },
 });
 
-apiClient.interceptors.request.use((config) => {
-  const token = localStorage.getItem('token');
+axiosClient.interceptors.request.use((config) => {
+  const token = localStorage.getItem("token");
+  console.log(token)
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
   }
   return config;
 });
 
-apiClient.interceptors.response.use(
+// Create a single instance of AccountApi with axiosClient
+// const accountApi = new AccountApi(undefined, undefined, axiosClient);
+
+axiosClient.interceptors.response.use(
   (response) => response,
   async (error) => {
     if (error.response.status === 401) {
-      const newToken = await refreshAccessToken();
-      localStorage.setItem('token', newToken);
-      error.config.headers.Authorization = `Bearer ${newToken}`;
-      return apiClient(error.config);
+      accountApi
+        .apiAccountRefreshPost({
+          refreshToken: localStorage.getItem("refreshToken"),
+        })
+        .then((res) => {
+          localStorage.setItem("token", res.data.token);
+          error.config.headers.Authorization = `Bearer ${res.data.token}`;
+          return axiosClient(error.config);
+        })
+        .catch(() => {
+          return Promise.reject(error);
+        });
     }
     return Promise.reject(error);
   }
 );
 
-const refreshAccessToken = async () => {
-  const refreshToken = localStorage.getItem('refreshToken');
-  const response = await apiClient.post('/api/Account/refresh', {
-    refreshToken,
-  });
-  return response.data.token;
-};
-
-export default apiClient;
+export default axiosClient;

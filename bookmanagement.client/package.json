@@ -9,7 +9,7 @@
     "preview": "vite preview",
     "build-only": "vite build",
     "type-check": "vue-tsc --build --force",
-    "generate-api": "npx @openapitools/openapi-generator-cli generate -i https://5046-idx-aspnet-vue-1729653606583.cluster-a3grjzek65cxex762e4mwrzl46.cloudworkstations.dev/swagger/v1/swagger.json -g typescript-axios ./src/generate-api",
+    "generate-api": "npx @openapitools/openapi-generator-cli generate -i http://localhost:5046/swagger/v1/swagger.json -g typescript-axios -o ./src/generate-api",
     "lint": "eslint . --fix"
   },
   "dependencies": {

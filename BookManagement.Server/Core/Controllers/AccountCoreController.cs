@@ -44,6 +44,7 @@ public abstract class AccountCoreController : Controller
     }
 
     [HttpPost("login")]
+    [ProducesResponseType(typeof(LoginResponse), StatusCodes.Status200OK)]
     public async Task<IActionResult> Login([FromBody] LoginRequest input)
     {
         var user = await _userManager.FindByNameAsync(input.Email);
@@ -71,7 +72,7 @@ public abstract class AccountCoreController : Controller
         // await _signInManager.SignInAsync(user, isPersistent: false);
 
         // Tạo phản hồi đăng nhập
-        var response = new
+        var response = new LoginResponse
         {
             Token = token,
             RefreshToken = refreshToken.Token,
@@ -115,6 +116,7 @@ public abstract class AccountCoreController : Controller
     }
 
     [HttpPost("refresh")]
+    [ProducesResponseType(typeof(RefreshResponse), StatusCodes.Status200OK)]
     public async Task<IActionResult> Refresh([FromBody] RefreshRequest input)
     {
         // get token from header "Authorization"
@@ -174,117 +176,59 @@ public abstract class AccountCoreController : Controller
 
     [HttpPost("update")]
     [Authorize]
+    [ProducesResponseType<UserDto>(StatusCodes.Status200OK)]
     public async Task<IActionResult> Update([FromForm] UpdateUserRequest input)
     {
         var user = await _userManager.GetUserAsync(User);
-        return Unauthorized(new { message = "Tài khoản không tồn tại" });
 
-        // if (user == null)
-        // {
-        //   return Unauthorized(new { message = "Tài khoản không tồn tại" });
-        // }
+        if (user == null)
+        {
+          return Unauthorized(new { message = "Tài khoản không tồn tại" });
+        }
 
-        // if (!string.IsNullOrEmpty(input.FullName)) {
-        //   user.FullName = input.FullName;
-        // }
+        if (!string.IsNullOrEmpty(input.FullName)) {
+          user.FullName = input.FullName;
+        }
 
-        // if (!string.IsNullOrEmpty(input.Address)) {
-        //   user.Address = input.Address;
-        // }
+        if (!string.IsNullOrEmpty(input.Phone)) {
+          user.PhoneNumber = input.Phone;
+        }
 
-        // if (!string.IsNullOrEmpty(input.Phone)) {
-        //   user.PhoneNumber = input.Phone;
-        // }
+        if (input.File != null) {
+          FileInformation fileInfo = await _uploadFile.UploadSingle(input.File, "User");
+          user.Image = fileInfo.Path;
+        }
 
-        // if (input.File != null) {
-        //   FileInformation fileInfo = await _uploadFile.UploadSingle(input.File, "User");
-        //   user.Image = fileInfo.Path;
-        // }
+        var result = await _userManager.UpdateAsync(user);
 
-        // var result = await _userManager.UpdateAsync(user);
+        if (!result.Succeeded) {
+          return BadRequest(new { message = "Không thể cập nhập thông tin tài khoản" });
+        }
 
-        // if (!result.Succeeded) {
-        //   return BadRequest(new { message = "Không thể cập nhập thông tin tài khoản" });
-        // }
+        if (!string.IsNullOrEmpty(input.CurrentPassword) && !string.IsNullOrEmpty(input.NewPassword)) {
+          var changePasswordResult = await _userManager.ChangePasswordAsync(user, input.CurrentPassword, input.NewPassword);
 
-        // if (!string.IsNullOrEmpty(input.CurrentPassword) && !string.IsNullOrEmpty(input.NewPassword)) {
-        //   var changePasswordResult = await _userManager.ChangePasswordAsync(user, input.CurrentPassword, input.NewPassword);
+          if (!changePasswordResult.Succeeded) {
+            return BadRequest(new { message = "Không thể cập nhập mật khẩu tin tài khoản" });
+          }
+        }
 
-        //   if (!changePasswordResult.Succeeded) {
-        //     return BadRequest(new { message = "Không thể cập nhập mật khẩu tin tài khoản" });
-        //   }
-
-        //   await _signInManager.RefreshSignInAsync(user);
-        // }
-
-        // return Ok(new UserDto() {
-        //   Id = user.Id,
-        //   Address = user.Address,
-        //   CreatedAt = user.CreatedAt,
-        //   Email = user.Email,
-        //   EmailConfirmed = user.EmailConfirmed,
-        //   FullName = user.FullName,
-        //   Image = user.Image,
-        //   PhoneNumber = user.PhoneNumber,
-        //   UpdatedAt = user.UpdatedAt
-        // });
+        return Ok(_mapper.Map<UserDto>(user));
     }
 
     [HttpGet("current-user")]
     [Authorize]
+    [ProducesResponseType<UserDto>(StatusCodes.Status200OK)]
     public async Task<IActionResult> GetCurrentUser()
     {
         var user = await _userManager.GetUserAsync(User);
 
-        return Ok(new
-        {
-            User = user != null ? _mapper.Map<UserDto>(user) : null
-        });
-    }
-
-    [HttpPost("reSendEmailConfirm")]
-    public async Task<IActionResult> ReSendEmailConfirm([FromBody] ReSendEmailConfirmRequest input)
-    {
-        var user = await _userManager.FindByEmailAsync(input.Email);
-
         if (user == null)
         {
             return Unauthorized(new { message = "Tài khoản không tồn tại" });
         }
 
-        var userId = await _userManager.GetUserIdAsync(user);
-        var code = await _userManager.GenerateEmailConfirmationTokenAsync(user);
-        code = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(code));
-
-        var request = _httpContextAccessor.HttpContext?.Request;
-        var host = request?.Host.Value;
-        var scheme = request?.Scheme;
-
-        var callbackUrl = $"{scheme}://{host}/account/ConfirmEmail?userId={userId}&code={code}";
-
-        await _emailSender.SendEmailAsync(input.Email, "Xác nhận email của bạn",
-          $"Vui lòng xác nhận tài khoản của bạn bằng cách <a href='{HtmlEncoder.Default.Encode(callbackUrl)}'>Ấn vào đây</a>.");
-
-        return Ok(new { message = "Vui lòng vào email để xác nhận tải khoản" });
+        return Ok(_mapper.Map<UserDto>(user));
     }
 
-    [HttpPost("ConfirmEmail")]
-    public async Task<IActionResult> ConfirmEmail([FromBody] ConfirmEmailRequest input)
-    {
-        var user = await _userManager.FindByIdAsync(input.UserId);
-        if (user == null)
-        {
-            return Unauthorized(new { message = "Tài khoản không tồn tại" });
-        }
-
-        var code = Encoding.UTF8.GetString(WebEncoders.Base64UrlDecode(input.Code));
-        var result = await _userManager.ConfirmEmailAsync(user, code);
-
-        if (!result.Succeeded)
-        {
-            return BadRequest(new { message = "Không thành công vui lòng thử lại" });
-        }
-
-        return Ok(new { message = "Tài khoản của bạn đã xác nhận email" });
-    }
 }
