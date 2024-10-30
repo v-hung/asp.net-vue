@@ -1,5 +1,6 @@
 using BookManagement.Server.Core.Authorization;
 using BookManagement.Server.Core.Models;
+using BookManagement.Server.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -10,10 +11,21 @@ namespace BookManagement.Server.Controllers;
 public class BookController : Controller {
 
     [HttpGet]
-    [Permission("Report3", PermissionType.View)]
-    public async Task<IActionResult> GetAllBooks()
+    [Permission("Book", PermissionType.View)]
+    [ProducesResponseType<Book>(StatusCodes.Status200OK)]
+    public IActionResult GetAllBooks()
     {
-        return Ok();
+        var books = new List<Book>();
+        for (int i = 0; i < 10; i++)
+        {
+            books.Add(new Book
+            {
+                Id = Guid.NewGuid(),
+                Title = $"Book {i}",
+            });
+        }
+
+        return Ok(books);
     }
 
 }
