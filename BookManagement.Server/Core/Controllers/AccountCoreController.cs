@@ -89,7 +89,7 @@ public abstract class AccountCoreController : Controller
         {
             UserName = input.Email,
             Email = input.Email,
-            FullName = input.FullName 
+            FullName = input.FullName
         };
 
         var result = await _userManager.CreateAsync(user, input.Password);
@@ -183,34 +183,40 @@ public abstract class AccountCoreController : Controller
 
         if (user == null)
         {
-          return Unauthorized(new { message = "Tài khoản không tồn tại" });
+            return Unauthorized(new { message = "Tài khoản không tồn tại" });
         }
 
-        if (!string.IsNullOrEmpty(input.FullName)) {
-          user.FullName = input.FullName;
+        if (!string.IsNullOrEmpty(input.FullName))
+        {
+            user.FullName = input.FullName;
         }
 
-        if (!string.IsNullOrEmpty(input.Phone)) {
-          user.PhoneNumber = input.Phone;
+        if (!string.IsNullOrEmpty(input.Phone))
+        {
+            user.PhoneNumber = input.Phone;
         }
 
-        if (input.File != null) {
-          FileInformation fileInfo = await _uploadFile.UploadSingle(input.File, "User");
-          user.Image = fileInfo.Path;
+        if (input.File != null)
+        {
+            FileInformation fileInfo = await _uploadFile.UploadSingle(input.File, "User");
+            user.Image = fileInfo.Path;
         }
 
         var result = await _userManager.UpdateAsync(user);
 
-        if (!result.Succeeded) {
-          return BadRequest(new { message = "Không thể cập nhập thông tin tài khoản" });
+        if (!result.Succeeded)
+        {
+            return BadRequest(new { message = "Không thể cập nhập thông tin tài khoản" });
         }
 
-        if (!string.IsNullOrEmpty(input.CurrentPassword) && !string.IsNullOrEmpty(input.NewPassword)) {
-          var changePasswordResult = await _userManager.ChangePasswordAsync(user, input.CurrentPassword, input.NewPassword);
+        if (!string.IsNullOrEmpty(input.CurrentPassword) && !string.IsNullOrEmpty(input.NewPassword))
+        {
+            var changePasswordResult = await _userManager.ChangePasswordAsync(user, input.CurrentPassword, input.NewPassword);
 
-          if (!changePasswordResult.Succeeded) {
-            return BadRequest(new { message = "Không thể cập nhập mật khẩu tin tài khoản" });
-          }
+            if (!changePasswordResult.Succeeded)
+            {
+                return BadRequest(new { message = "Không thể cập nhập mật khẩu tin tài khoản" });
+            }
         }
 
         return Ok(_mapper.Map<UserDto>(user));

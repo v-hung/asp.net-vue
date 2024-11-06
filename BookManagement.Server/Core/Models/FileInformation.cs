@@ -1,16 +1,27 @@
+using System.ComponentModel.DataAnnotations;
+
 namespace BookManagement.Server.Core.Models;
 public class FileInformation
 {
+    [Required]
     public required string Name { get; set; }
+
+    [Required]
     public required string Path { get; set; }
+
     public string? Extension { get; set; }
-    public long Size { get; set; }
+
+    [Required]
+    public long Size { get; set; } = 0;
+
     public int ImageWidth { get; set; }
+
     public int ImageHeight { get; set; }
 
     public string FormatFileSize
     {
-        get {
+        get
+        {
             const int scale = 1024;
             string[] orders = new string[] { "TB", "GB", "MB", "KB", "bytes" };
             long max = (long)Math.Pow(scale, orders.Length - 1);

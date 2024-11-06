@@ -1,5 +1,6 @@
 {
     "IDX.aI.enableInlineCompletion": true,
     "IDX.aI.enableCodebaseIndexing": true,
-    "commentTranslate.source": "Google"
+    "commentTranslate.source": "Google",
+    "editor.formatOnSave": true
 }

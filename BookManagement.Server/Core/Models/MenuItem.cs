@@ -11,10 +11,12 @@ public class MenuItem
 
     [Required]
     public required string Url { get; set; }
+
     public Guid? ParentId { get; set; }
 
     [Required]
     public bool IsVisible { get; set; } = true;
+
     public int Order { get; set; }
 
     [Required]
